@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Client Payment | Your Web Studio</title>
+    <link rel="stylesheet" href="payment.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://js.stripe.com/v3/"></script>
+  </head>
+  <body>
+    <div class="payment-container">
+      <div class="payment-box">
+        <h2>Pay Website Dues</h2>
+        <p class="tagline">Secure your project by completing payment below.</p>
+
+        <form class="payment-form">
+          <div class="input-group">
+            <label for="name">Full Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder=" eg. John Doe"
+              required
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="email">Email Address</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder=" eg. example@gmail.com"
+              required
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="service">Service </label>
+            <input
+              type="text"
+              id="service"
+              name="service"
+              placeholder=" eg. Blog Setup & Hosting"
+              required
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="amount">Amount (£)</label>
+            <input type="number" id="amount" name="amount" min="1" />
+          </div>
+
+          <button type="submit" onclick="SendPayment()" class="pay-btn">
+            Proceed to Pay
+          </button>
+        </form>
+        <script>
+          async function SendPayment(e) {
+            event.preventDefault();
+
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const service = document.getElementById("service").value;
+            const amount = parseFloat(document.getElementById("amount").value);
+
+            const payments = [
+              {
+                name: name,
+                email: email,
+                service: service,
+                amount: amount,
+              },
+            ];
+
+            console.log("Sending:", payments);
+
+            try {
+              const res = await fetch(
+                "https://web-dues-payment.onrender.com/payment",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ payments }),
+                }
+              );
+
+              const data = await res.json();
+
+              if (res.ok) {
+                const stripe = Stripe(
+                  "pk_live_51Rpsq2LRwcoOq8wgsLstZO5LcuIqjk7M54Kisklu5AbUHZfeC1r1RDaEA6bz7iq6eDxFiR7yqLGrx80PsGYmdqGt007D5oIJL3"
+                );
+                await stripe.redirectToCheckout({ sessionId: data.id });
+              } else {
+                alert(data.error || "Failed to create Stripe session.");
+              }
+            } catch (err) {
+              console.error("Payment Error:", err);
+              alert("Something went wrong. Try again later.");
+            }
+          }
+        </script>
+      </div>
+    </div>
+  </body>
+</html>
